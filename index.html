@@ -1,139 +1,149 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full w-full m-0 p-0">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart Route - Optimasi Pengiriman</title>
-    
-    <!-- Tailwind CSS (CDN) -->
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Leaflet CSS -->
+
+    <!-- Leaflet Peta -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Scanner & Ikon -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        .leaflet-container { z-index: 0 !important; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        /* Perbaikan: Mengunci tinggi agar tidak hilang */
         
-        /* Menyembunyikan tab yang tidak aktif */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            margin: 0;
+        }
+        
+        .leaflet-container {
+            z-index: 0 !important;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50 flex justify-center font-sans text-gray-800 h-screen overflow-hidden">
 
-    <div class="w-full max-w-md bg-white shadow-xl flex flex-col relative h-full">
-        
-        <!-- Header -->
+<body class="bg-gray-100 flex justify-center font-sans antialiased text-gray-800">
+
+    <div class="w-full max-w-md bg-gray-50 shadow-xl flex flex-col h-full relative overflow-hidden">
+
+        <!-- HEADER -->
         <header class="bg-blue-600 text-white p-4 shadow-sm z-10 shrink-0">
             <h1 class="text-2xl font-bold tracking-tight">Smart Route</h1>
             <p class="text-sm text-blue-100 font-medium">Optimasi Pengiriman</p>
         </header>
 
-        <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50" id="main-content">
-            
-            <!-- ================= DASBOR 1: INPUT ================= -->
-            <div id="tab-input" class="tab-content active animate-fadeIn space-y-5">
-                
-                <!-- Kamera Scanner (Hidden by default) -->
+        <!-- KONTEN UTAMA -->
+        <main class="flex-1 overflow-y-auto p-4 pb-24 relative bg-gray-50">
+
+            <!-- DASBOR 1: INPUT PAKET -->
+            <section id="tab-input" class="tab-content active space-y-5 h-full">
+
                 <div id="camera-container" class="hidden bg-black rounded-xl overflow-hidden relative shadow-lg">
                     <div class="absolute top-2 left-2 right-2 flex justify-between items-center z-10 p-2">
                         <span class="text-white text-xs font-bold bg-black bg-opacity-50 px-2 py-1 rounded">Arahkan ke QR Code</span>
-                        <button onclick="stopCamera()" class="bg-red-500 text-white p-1 rounded-full hover:bg-red-600">
-                            <i data-lucide="x" class="w-5 h-5"></i>
+                        <button onclick="stopCamera()" class="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600">
+                            <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     </div>
                     <div id="reader" class="w-full min-h-[300px]"></div>
                 </div>
 
-                <!-- Form Input -->
                 <div id="input-form-container" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <h2 class="text-base font-semibold mb-4 text-gray-800">Tambah Alamat Baru</h2>
-                    
                     <button onclick="startCamera()" class="w-full mb-4 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl flex items-center justify-center font-medium transition-colors shadow-sm">
                         <i data-lucide="qr-code" class="w-5 h-5 mr-2"></i> Buka Pemindai QR
                     </button>
-
                     <div class="flex items-center my-4">
                         <div class="flex-1 border-t border-gray-200"></div>
                         <span class="px-3 text-xs text-gray-400 font-medium uppercase">Atau Ketik Manual</span>
                         <div class="flex-1 border-t border-gray-200"></div>
                     </div>
-
                     <form onsubmit="handleAddManual(event)" class="space-y-3">
-                        <div>
-                            <input type="text" id="manual-address" placeholder="Contoh: Jl. Merdeka No.45" required
-                                class="w-full border border-gray-300 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-gray-50 transition-all" />
-                        </div>
+                        <input type="text" id="manual-address" placeholder="Contoh: Jl. Merdeka No.45" required class="w-full border border-gray-300 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 transition-all" />
                         <button type="submit" class="w-full bg-blue-50 text-blue-700 py-3 rounded-xl text-sm font-bold hover:bg-blue-100 transition-colors">
                             Simpan ke Daftar
                         </button>
                     </form>
                 </div>
 
-                <!-- Daftar Kunjungan -->
-                <div id="delivery-list-container" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div id="list-container" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex flex-col">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
                         <h3 class="font-semibold text-gray-800">Daftar Kiriman</h3>
                         <span id="delivery-count" class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-full">0 Titik</span>
                     </div>
-                    <ul id="delivery-list" class="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
-                        <!-- List dinamis -->
+                    <ul id="delivery-list" class="divide-y divide-gray-100 overflow-y-auto flex-1 h-64">
+                        <!-- Render via JS -->
                     </ul>
                 </div>
-            </div>
+            </section>
 
-            <!-- ================= DASBOR 2: RUTE ================= -->
-            <div id="tab-route" class="tab-content animate-fadeIn space-y-4 h-full flex flex-col">
+            <!-- DASBOR 2: RUTE -->
+            <section id="tab-route" class="tab-content h-full space-y-4">
+
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 shrink-0">
                     <div class="flex justify-between items-center mb-4">
                         <div>
                             <h2 class="font-semibold text-gray-800">Perencanaan Rute</h2>
-                            <p class="text-xs text-gray-500" id="route-desc-text">Mencari jalur terdekat.</p>
+                            <p id="route-desc" class="text-xs text-gray-500">Mencari jalur terdekat.</p>
                         </div>
                         <i data-lucide="navigation" class="w-8 h-8 text-blue-100"></i>
                     </div>
-                    
-                    <button id="btn-calculate" onclick="calculateRoute()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center shadow-md transition-all">
-                        <i data-lucide="play" class="w-5 h-5 mr-2"></i> Mulai Optimasi Rute
+                    <button id="btn-optimize" onclick="calculateRoute()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center shadow-md transition-all disabled:opacity-50">
+                        <i data-lucide="play" class="w-5 h-5 mr-2" id="icon-play"></i>
+                        <span id="text-optimize">Mulai Optimasi Rute</span>
                     </button>
                 </div>
 
-                <!-- Container Map Leaflet -->
-                <div class="flex-1 relative min-h-[350px] bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-200 shrink-0">
-                    <div id="map" class="w-full h-full z-0"></div>
-                    
-                    <div id="map-overlay" class="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-40 z-10 pointer-events-none backdrop-blur-sm">
-                        <div class="bg-white px-5 py-3 rounded-full shadow-lg">
-                            <p class="text-sm text-gray-700 font-medium">Tekan tombol optimasi di atas</p>
-                        </div>
-                    </div>
+                <div class="flex-1 relative min-h-[300px] w-full bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-200 z-0">
+                    <div id="map" class="absolute inset-0 w-full h-full"></div>
                 </div>
 
-                <!-- Urutan Pengiriman -->
-                <div id="optimized-sequence-container" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 shrink-0 mb-8">
+                <div id="optimized-list-container" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 shrink-0">
                     <div class="p-4 border-b border-gray-100">
                         <h3 class="font-semibold text-gray-800">Navigasi Perjalanan</h3>
                     </div>
-                    <div class="p-4 h-[250px] overflow-y-auto">
-                        <div id="sequence-list" class="relative border-l-2 border-blue-200 ml-3 space-y-6 pr-2">
-                            <!-- List urutan rute dinamis -->
+                    <div class="p-4 h-[200px] overflow-y-auto">
+                        <div id="optimized-list" class="relative border-l-2 border-blue-200 ml-3 space-y-6 pr-2 pb-2">
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- ================= DASBOR 3: AKUN ================= -->
-            <div id="tab-account" class="tab-content animate-fadeIn space-y-4">
+            <!-- DASBOR 3: AKUN -->
+            <section id="tab-account" class="tab-content h-full space-y-4">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
                     <div class="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center border-4 border-white shadow-sm">
                         <i data-lucide="user" class="w-12 h-12 text-gray-400"></i>
@@ -144,12 +154,12 @@
                         <i data-lucide="check-circle" class="w-4 h-4 mr-1.5"></i> Sedang Bertugas
                     </div>
                 </div>
-                
+
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                     <h3 class="font-semibold text-gray-800 mb-3 text-sm">Statistik Hari Ini</h3>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-gray-50 rounded-xl p-4 text-center">
-                            <p class="text-2xl font-bold text-blue-600" id="stat-paket">20</p>
+                            <p id="stat-count" class="text-2xl font-bold text-blue-600">20</p>
                             <p class="text-xs text-gray-500 font-medium">Paket</p>
                         </div>
                         <div class="bg-gray-50 rounded-xl p-4 text-center">
@@ -158,406 +168,412 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+
         </main>
 
-        <!-- Bottom Navigation -->
-        <nav class="absolute bottom-0 w-full bg-white border-t border-gray-100 flex justify-around p-2 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-20 pb-safe">
-            <button onclick="switchTab('input')" id="nav-input" class="flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-blue-600 bg-blue-50">
+        <!-- BOTTOM NAV -->
+        <nav class="absolute bottom-0 w-full bg-white border-t border-gray-100 flex justify-around p-2 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-20">
+            <button onclick="switchTab('input')" id="nav-input" class="nav-btn flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-blue-600 bg-blue-50">
                 <i data-lucide="camera" class="w-6 h-6 mb-1"></i>
                 <span class="text-[10px] font-bold">PAKET</span>
             </button>
-            <button onclick="switchTab('route')" id="nav-route" class="flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-gray-400 hover:bg-gray-50">
+            <button onclick="switchTab('route')" id="nav-route" class="nav-btn flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-gray-400 hover:bg-gray-50">
                 <i data-lucide="map" class="w-6 h-6 mb-1"></i>
                 <span class="text-[10px] font-bold">RUTE</span>
             </button>
-            <button onclick="switchTab('account')" id="nav-account" class="flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-gray-400 hover:bg-gray-50">
+            <button onclick="switchTab('account')" id="nav-account" class="nav-btn flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-gray-400 hover:bg-gray-50">
                 <i data-lucide="user" class="w-6 h-6 mb-1"></i>
                 <span class="text-[10px] font-bold">PROFIL</span>
             </button>
         </nav>
+
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-
+    <!-- LOGIKA JS -->
     <script>
-        // --- State Variables ---
-        const depot = { lat: -6.2000, lng: 106.8166, address: 'HUB Logistik Jakarta Pusat' };
-        
-        let deliveries = [
-            { id: 'DEL-001', address: 'Jl. Jend. Sudirman Kav. 1', lat: -6.2215, lng: 106.8055 },
-            { id: 'DEL-002', address: 'Plaza Indonesia, Thamrin', lat: -6.1873, lng: 106.8229 },
-            { id: 'DEL-003', address: 'Blok M Square', lat: -6.2444, lng: 106.8006 },
-            { id: 'DEL-004', address: 'Jl. Kemang Raya No. 15', lat: -6.2615, lng: 106.8163 },
-            { id: 'DEL-005', address: 'Gelora Bung Karno, Senayan', lat: -6.2250, lng: 106.8000 },
-            { id: 'DEL-006', address: 'Kuningan City Mall', lat: -6.2263, lng: 106.8326 },
-            { id: 'DEL-007', address: 'Taman Suropati, Menteng', lat: -6.1950, lng: 106.8321 },
-            { id: 'DEL-008', address: 'Stasiun Tebet', lat: -6.2261, lng: 106.8560 },
-            { id: 'DEL-009', address: 'Tugu Pancoran', lat: -6.2501, lng: 106.8452 },
-            { id: 'DEL-010', address: 'Cilandak Town Square', lat: -6.2926, lng: 106.7993 },
-            { id: 'DEL-011', address: 'Pasar Kebayoran Lama', lat: -6.2423, lng: 106.7794 },
-            { id: 'DEL-012', address: 'Stasiun Palmerah', lat: -6.1952, lng: 106.7950 },
-            { id: 'DEL-013', address: 'Plaza Slipi Jaya', lat: -6.1897, lng: 106.7983 },
-            { id: 'DEL-014', address: 'Mall Taman Anggrek, Tomang', lat: -6.1752, lng: 106.7936 },
-            { id: 'DEL-015', address: 'Universitas Trisakti, Grogol', lat: -6.1627, lng: 106.7903 },
-            { id: 'DEL-016', address: 'ITC Roxy Mas', lat: -6.1678, lng: 106.8051 },
-            { id: 'DEL-017', address: 'Halte Harmoni', lat: -6.1623, lng: 106.8211 },
-            { id: 'DEL-018', address: 'Pasar Baru Jakarta', lat: -6.1631, lng: 106.8336 },
-            { id: 'DEL-019', address: 'JIExpo Kemayoran', lat: -6.1554, lng: 106.8533 },
-            { id: 'DEL-020', address: 'Mall Kelapa Gading', lat: -6.1581, lng: 106.8996 },
-        ];
-        
+        const depot = {
+            lat: -6.2000,
+            lng: 106.8166,
+            address: 'HUB Logistik Jakarta Pusat'
+        };
+        let deliveries = [{
+            id: 'DEL-001',
+            address: 'Jl. Jend. Sudirman Kav. 1',
+            lat: -6.2215,
+            lng: 106.8055
+        }, {
+            id: 'DEL-002',
+            address: 'Plaza Indonesia, Thamrin',
+            lat: -6.1873,
+            lng: 106.8229
+        }, {
+            id: 'DEL-003',
+            address: 'Blok M Square',
+            lat: -6.2444,
+            lng: 106.8006
+        }, {
+            id: 'DEL-004',
+            address: 'Jl. Kemang Raya No. 15',
+            lat: -6.2615,
+            lng: 106.8163
+        }, {
+            id: 'DEL-005',
+            address: 'Gelora Bung Karno, Senayan',
+            lat: -6.2250,
+            lng: 106.8000
+        }, {
+            id: 'DEL-006',
+            address: 'Kuningan City Mall',
+            lat: -6.2263,
+            lng: 106.8326
+        }, {
+            id: 'DEL-007',
+            address: 'Taman Suropati, Menteng',
+            lat: -6.1950,
+            lng: 106.8321
+        }, {
+            id: 'DEL-008',
+            address: 'Stasiun Tebet',
+            lat: -6.2261,
+            lng: 106.8560
+        }, {
+            id: 'DEL-009',
+            address: 'Tugu Pancoran',
+            lat: -6.2501,
+            lng: 106.8452
+        }, {
+            id: 'DEL-010',
+            address: 'Cilandak Town Square',
+            lat: -6.2926,
+            lng: 106.7993
+        }, {
+            id: 'DEL-011',
+            address: 'Pasar Kebayoran Lama',
+            lat: -6.2423,
+            lng: 106.7794
+        }, {
+            id: 'DEL-012',
+            address: 'Stasiun Palmerah',
+            lat: -6.1952,
+            lng: 106.7950
+        }, {
+            id: 'DEL-013',
+            address: 'Plaza Slipi Jaya',
+            lat: -6.1897,
+            lng: 106.7983
+        }, {
+            id: 'DEL-014',
+            address: 'Mall Taman Anggrek, Tomang',
+            lat: -6.1752,
+            lng: 106.7936
+        }, {
+            id: 'DEL-015',
+            address: 'Universitas Trisakti, Grogol',
+            lat: -6.1627,
+            lng: 106.7903
+        }, {
+            id: 'DEL-016',
+            address: 'ITC Roxy Mas',
+            lat: -6.1678,
+            lng: 106.8051
+        }, {
+            id: 'DEL-017',
+            address: 'Halte Harmoni',
+            lat: -6.1623,
+            lng: 106.8211
+        }, {
+            id: 'DEL-018',
+            address: 'Pasar Baru Jakarta',
+            lat: -6.1631,
+            lng: 106.8336
+        }, {
+            id: 'DEL-019',
+            address: 'JIExpo Kemayoran',
+            lat: -6.1554,
+            lng: 106.8533
+        }, {
+            id: 'DEL-020',
+            address: 'Mall Kelapa Gading',
+            lat: -6.1581,
+            lng: 106.8996
+        }];
         let optimizedRoute = null;
+        let activeTab = 'input';
         let mapInstance = null;
         let routeLayerGroup = null;
         let html5QrcodeScanner = null;
 
-        // Inisialisasi Icons
-        lucide.createIcons();
-        updateDeliveryList();
+        // Init ketika DOM selesai
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
 
-        // --- Navigation / Tabs ---
+            // Sembunyikan tab lain secara manual agar aman
+            document.getElementById('tab-route').classList.remove('active');
+            document.getElementById('tab-account').classList.remove('active');
+
+            renderDeliveryList();
+        });
+
         function switchTab(tabId) {
-            // Hide all tabs
+            activeTab = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-
-            // Update Nav Styling
-            const navIds = ['input', 'route', 'account'];
-            navIds.forEach(id => {
-                const btn = document.getElementById(`nav-${id}`);
-                if(id === tabId) {
-                    btn.className = "flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-blue-600 bg-blue-50";
-                } else {
-                    btn.className = "flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-gray-400 hover:bg-gray-50";
-                }
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.className = "nav-btn flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-gray-400 hover:bg-gray-50";
             });
 
-            if (tabId === 'route') {
-                document.getElementById('route-desc-text').innerText = `Mencari jalur terdekat untuk ${deliveries.length} tujuan.`;
-                initMap();
-            }
-            if(tabId === 'account') {
-                document.getElementById('stat-paket').innerText = deliveries.length;
-            }
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.getElementById(`nav-${tabId}`).className = "nav-btn flex flex-col items-center p-3 w-1/3 rounded-xl transition-all text-blue-600 bg-blue-50";
+
+            if (tabId === 'route') renderMap();
         }
 
-        // --- Data Management ---
-        function updateDeliveryList() {
+        function renderDeliveryList() {
             const listEl = document.getElementById('delivery-list');
             document.getElementById('delivery-count').innerText = `${deliveries.length} Titik`;
-            
+            document.getElementById('route-desc').innerText = `Mencari jalur terdekat untuk ${deliveries.length} tujuan.`;
+            document.getElementById('stat-count').innerText = deliveries.length;
+
             if (deliveries.length === 0) {
-                listEl.innerHTML = `<p class="text-sm text-gray-400 text-center py-8">Belum ada paket yang harus dikirim.</p>`;
+                listEl.innerHTML = `<p class="text-sm text-gray-400 text-center py-8">Belum ada paket.</p>`;
                 return;
             }
 
-            let html = '';
-            deliveries.forEach((del, idx) => {
-                html += `
-                <li class="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
+            listEl.innerHTML = deliveries.map((del, idx) => `
+                <li class="p-4 flex justify-between items-center hover:bg-gray-50">
                     <div class="flex items-start">
-                        <div class="bg-gray-100 text-gray-500 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0 mt-0.5">
-                            ${idx + 1}
-                        </div>
+                        <div class="bg-gray-100 text-gray-500 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">${idx + 1}</div>
                         <div>
-                            <p class="text-xs text-gray-400 mb-0.5 font-medium">${del.id}</p>
-                            <p class="text-sm font-medium text-gray-800 leading-tight pr-4">${del.address}</p>
+                            <p class="text-xs text-gray-400 font-medium">${del.id}</p>
+                            <p class="text-sm font-medium text-gray-800 pr-4">${del.address}</p>
                         </div>
                     </div>
-                    <button onclick="removeDelivery(${idx})" class="text-red-400 hover:text-red-600 p-2 shrink-0">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                    </button>
-                </li>`;
-            });
-            listEl.innerHTML = html;
+                    <button onclick="removeDelivery(${idx})" class="text-red-400 hover:text-red-600 p-2"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                </li>
+            `).join('');
             lucide.createIcons();
-            optimizedRoute = null; // Reset route
+        }
+
+        function removeDelivery(idx) {
+            deliveries.splice(idx, 1);
+            optimizedRoute = null;
+            renderDeliveryList();
+            document.getElementById('optimized-list-container').classList.add('hidden');
+            if (activeTab === 'route') renderMap();
         }
 
         function handleAddManual(e) {
             e.preventDefault();
-            const input = document.getElementById('manual-address');
-            if (!input.value) return;
-
+            const addressInput = document.getElementById('manual-address');
+            if (!addressInput.value) return;
             deliveries.push({
                 id: `DEL-${String(deliveries.length + 1).padStart(3, '0')}`,
-                address: input.value,
+                address: addressInput.value,
                 lat: depot.lat + (Math.random() - 0.5) * 0.1,
                 lng: depot.lng + (Math.random() - 0.5) * 0.1,
             });
-            input.value = '';
-            updateDeliveryList();
-            resetMap();
+            addressInput.value = '';
+            optimizedRoute = null;
+            renderDeliveryList();
+            document.getElementById('optimized-list-container').classList.add('hidden');
         }
 
-        function removeDelivery(index) {
-            deliveries.splice(index, 1);
-            updateDeliveryList();
-            resetMap();
+        function renderMap() {
+            if (!mapInstance) {
+                mapInstance = L.map('map', {
+                    zoomControl: false
+                }).setView([depot.lat, depot.lng], 12);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap'
+                }).addTo(mapInstance);
+                L.control.zoom({
+                    position: 'topright'
+                }).addTo(mapInstance);
+                routeLayerGroup = L.layerGroup().addTo(mapInstance);
+            }
+
+            // Timeout diperbesar menjadi 150ms agar animasi CSS tab selesai dulu, lalu render peta
+            setTimeout(() => {
+                mapInstance.invalidateSize();
+                routeLayerGroup.clearLayers();
+
+                const pointsToDraw = optimizedRoute ? [depot, ...optimizedRoute, depot] : [depot, ...deliveries];
+                const bounds = L.latLngBounds();
+                const routeCoordinates = [];
+
+                pointsToDraw.forEach((wp, idx) => {
+                    bounds.extend([wp.lat, wp.lng]);
+                    let isDepot = optimizedRoute ? (idx === 0 || idx === pointsToDraw.length - 1) : (idx === 0);
+                    let label = isDepot ? '★' : idx;
+                    let bgColor = isDepot ? 'bg-blue-600' : (optimizedRoute ? 'bg-red-500' : 'bg-gray-400');
+
+                    if (optimizedRoute) routeCoordinates.push([wp.lat, wp.lng]);
+
+                    const customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="${bgColor} w-6 h-6 rounded-full border-2 border-white text-white flex items-center justify-center text-xs font-bold shadow-md">${label}</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+
+                    L.marker([wp.lat, wp.lng], {
+                            icon: customIcon,
+                            zIndexOffset: isDepot ? 1000 : 500
+                        })
+                        .addTo(routeLayerGroup)
+                        .bindPopup(`<b>${isDepot ? 'Depot' : 'Titik Tujuan'}</b><br/>${wp.address}`);
+                });
+
+                if (optimizedRoute && routeCoordinates.length > 0) {
+                    L.polyline(routeCoordinates, {
+                        color: '#3b82f6',
+                        weight: 4,
+                        opacity: 0.8,
+                        lineJoin: 'round'
+                    }).addTo(routeLayerGroup);
+                }
+
+                if (pointsToDraw.length > 0) {
+                    mapInstance.fitBounds(bounds, {
+                        padding: [40, 40]
+                    });
+                }
+            }, 150);
         }
 
-        // --- QR Scanner ---
+        // Genetic Algorithm Logic
+        function calculateDistance(p1, p2) {
+            return Math.sqrt(Math.pow(p1.lat - p2.lat, 2) + Math.pow(p1.lng - p2.lng, 2));
+        }
+
+        function calculateTotalDistance(route, depot, deliveries) {
+            let total = 0,
+                currentPos = depot;
+            for (let i = 0; i < route.length; i++) {
+                total += calculateDistance(currentPos, deliveries[route[i]]);
+                currentPos = deliveries[route[i]];
+            }
+            return total + calculateDistance(currentPos, depot);
+        }
+
+        function calculateRoute() {
+            if (deliveries.length === 0) return;
+            const btn = document.getElementById('btn-optimize');
+            const icon = document.getElementById('icon-play');
+
+            btn.disabled = true;
+            icon.setAttribute('data-lucide', 'loader-2');
+            icon.classList.add('animate-spin');
+            document.getElementById('text-optimize').innerText = 'Sedang Mengkalkulasi...';
+            lucide.createIcons();
+
+            setTimeout(() => {
+                const popSize = 50,
+                    generations = 100,
+                    numCust = deliveries.length;
+                let population = Array.from({
+                    length: popSize
+                }, () => Array.from({
+                    length: numCust
+                }, (_, i) => i).sort(() => Math.random() - 0.5));
+
+                for (let gen = 0; gen < generations; gen++) {
+                    const fitness = population.map(chrom => ({
+                        chrom,
+                        fit: 1 / calculateTotalDistance(chrom, depot, deliveries)
+                    })).sort((a, b) => b.fit - a.fit);
+                    const newPop = fitness.slice(0, Math.floor(popSize * 0.2)).map(f => [...f.chrom]);
+
+                    while (newPop.length < popSize) {
+                        const p1 = fitness[Math.floor(Math.random() * (popSize / 2))].chrom;
+                        const p2 = fitness[Math.floor(Math.random() * (popSize / 2))].chrom;
+                        const start = Math.floor(Math.random() * numCust),
+                            end = Math.floor(Math.random() * numCust);
+                        const child = new Array(numCust).fill(null);
+
+                        for (let i = Math.min(start, end); i <= Math.max(start, end); i++) child[i] = p1[i];
+                        let p2Idx = 0;
+                        for (let i = 0; i < numCust; i++) {
+                            if (child[i] === null) {
+                                while (child.includes(p2[p2Idx])) p2Idx++;
+                                child[i] = p2[p2Idx];
+                            }
+                        }
+                        if (Math.random() < 0.1) {
+                            const i1 = Math.floor(Math.random() * numCust),
+                                i2 = Math.floor(Math.random() * numCust);
+                            [child[i1], child[i2]] = [child[i2], child[i1]];
+                        }
+                        newPop.push(child);
+                    }
+                    population = newPop;
+                }
+
+                optimizedRoute = population[0].map(idx => deliveries[idx]);
+                renderMap();
+
+                // Tampilkan list navigasi
+                const listContainer = document.getElementById('optimized-list-container');
+                const listEl = document.getElementById('optimized-list');
+                listContainer.classList.remove('hidden');
+
+                let html = `<div class="relative pl-6"><div class="absolute -left-[9px] top-1 bg-blue-600 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div><p class="text-xs font-bold text-blue-600 uppercase">Mulai dari</p><p class="text-sm font-semibold text-gray-800">${depot.address}</p></div>`;
+                optimizedRoute.forEach((del, idx) => {
+                    html += `<div class="relative pl-6 mt-6"><div class="absolute -left-[11px] top-0 bg-white border-2 border-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-sm"><span class="text-[10px] font-bold text-red-500">${idx + 1}</span></div><p class="text-sm font-semibold text-gray-800 leading-snug">${del.address}</p><p class="text-xs text-gray-400 mt-1">${del.id}</p></div>`;
+                });
+                html += `<div class="relative pl-6 mt-6 pb-2"><div class="absolute -left-[9px] top-1 bg-blue-600 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div><p class="text-xs font-bold text-blue-600 uppercase">Selesai</p><p class="text-sm font-semibold text-gray-800">Kembali ke Titik Awal</p></div>`;
+                listEl.innerHTML = html;
+
+                btn.disabled = false;
+                icon.setAttribute('data-lucide', 'play');
+                icon.classList.remove('animate-spin');
+                document.getElementById('text-optimize').innerText = 'Mulai Optimasi Rute';
+                lucide.createIcons();
+            }, 800);
+        }
+
+        // Camera Logic
         function startCamera() {
-            document.getElementById('input-form-container').classList.add('hidden');
-            document.getElementById('delivery-list-container').classList.add('hidden');
             document.getElementById('camera-container').classList.remove('hidden');
+            document.getElementById('input-form-container').classList.add('hidden');
+            document.getElementById('list-container').classList.add('hidden');
 
             html5QrcodeScanner = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
-            
-            html5QrcodeScanner.start({ facingMode: "environment" }, config, 
-                (decodedText) => {
+            html5QrcodeScanner.start({
+                    facingMode: "environment"
+                }, {
+                    fps: 10,
+                    qrbox: {
+                        width: 250,
+                        height: 250
+                    }
+                },
+                (text) => {
                     stopCamera();
-                    processScannedData(decodedText);
-                }, 
-                (error) => {} // abaikan error bacaan tiap frame
+                    deliveries.push({
+                        id: `DEL-${String(deliveries.length + 1).padStart(3, '0')}`,
+                        address: text,
+                        lat: depot.lat + (Math.random() - 0.5) * 0.1,
+                        lng: depot.lng + (Math.random() - 0.5) * 0.1
+                    });
+                    optimizedRoute = null;
+                    renderDeliveryList();
+                    document.getElementById('optimized-list-container').classList.add('hidden');
+                },
+                (err) => {}
             ).catch(err => {
-                alert("Kamera diblokir. Pastikan memberi izin akses kamera.");
+                alert("Kamera diblokir.");
                 stopCamera();
             });
         }
 
         function stopCamera() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => {
-                    html5QrcodeScanner.clear();
-                }).catch(err => console.log(err));
-            }
+            if (html5QrcodeScanner) html5QrcodeScanner.stop().catch(e => console.log(e));
             document.getElementById('camera-container').classList.add('hidden');
             document.getElementById('input-form-container').classList.remove('hidden');
-            document.getElementById('delivery-list-container').classList.remove('hidden');
-        }
-
-        function processScannedData(text) {
-            let address = text;
-            try { 
-                const data = JSON.parse(text); 
-                address = data.address || text; 
-            } catch(e) {}
-
-            deliveries.push({
-                id: `DEL-${String(deliveries.length + 1).padStart(3, '0')}`,
-                address: address,
-                lat: depot.lat + (Math.random() - 0.5) * 0.1,
-                lng: depot.lng + (Math.random() - 0.5) * 0.1,
-            });
-            updateDeliveryList();
-            resetMap();
-        }
-
-        // --- Algoritma Genetik (VRP) ---
-        function calculateDistance(p1, p2) {
-            const dx = p1.lat - p2.lat;
-            const dy = p1.lng - p2.lng;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
-        function calculateTotalDistance(route, depot, deliveries) {
-            let total = 0;
-            let currentPos = depot;
-            for (let i = 0; i < route.length; i++) {
-                const nextStop = deliveries[route[i]];
-                total += calculateDistance(currentPos, nextStop);
-                currentPos = nextStop;
-            }
-            total += calculateDistance(currentPos, depot);
-            return total;
-        }
-
-        function runGeneticAlgorithm(depot, deliveries, popSize = 50, generations = 100) {
-            if (deliveries.length <= 1) return deliveries.map((_, i) => i);
-            const numCustomers = deliveries.length;
-            
-            let population = Array.from({ length: popSize }, () => {
-                let chromosome = Array.from({ length: numCustomers }, (_, i) => i);
-                for (let i = chromosome.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [chromosome[i], chromosome[j]] = [chromosome[j], chromosome[i]];
-                }
-                return chromosome;
-            });
-
-            for (let gen = 0; gen < generations; gen++) {
-                const fitnessScores = population.map(chromosome => ({
-                    chromosome,
-                    fitness: 1 / calculateTotalDistance(chromosome, depot, deliveries)
-                }));
-                fitnessScores.sort((a, b) => b.fitness - a.fitness);
-                
-                const newPopulation = [];
-                const eliteCount = Math.floor(popSize * 0.2);
-                for (let i = 0; i < eliteCount; i++) newPopulation.push([...fitnessScores[i].chromosome]);
-
-                while (newPopulation.length < popSize) {
-                    const parent1 = fitnessScores[Math.floor(Math.random() * (popSize / 2))].chromosome;
-                    const parent2 = fitnessScores[Math.floor(Math.random() * (popSize / 2))].chromosome;
-                    
-                    const start = Math.floor(Math.random() * numCustomers);
-                    const end = Math.floor(Math.random() * numCustomers);
-                    const min = Math.min(start, end);
-                    const max = Math.max(start, end);
-
-                    const child = new Array(numCustomers).fill(null);
-                    for (let i = min; i <= max; i++) child[i] = parent1[i];
-                    let p2Index = 0;
-                    for (let i = 0; i < numCustomers; i++) {
-                        if (child[i] === null) {
-                            while (child.includes(parent2[p2Index])) p2Index++;
-                            child[i] = parent2[p2Index];
-                        }
-                    }
-                    if (Math.random() < 0.1) {
-                        const idx1 = Math.floor(Math.random() * numCustomers);
-                        const idx2 = Math.floor(Math.random() * numCustomers);
-                        [child[idx1], child[idx2]] = [child[idx2], child[idx1]];
-                    }
-                    newPopulation.push(child);
-                }
-                population = newPopulation;
-            }
-
-            let bestRoute = population[0];
-            let minDistance = calculateTotalDistance(bestRoute, depot, deliveries);
-            for (let i = 1; i < population.length; i++) {
-                const dist = calculateTotalDistance(population[i], depot, deliveries);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    bestRoute = population[i];
-                }
-            }
-            return bestRoute;
-        }
-
-        // --- Map Logic ---
-        function initMap() {
-            if (!mapInstance) {
-                mapInstance = L.map('map', { zoomControl: false }).setView([depot.lat, depot.lng], 12);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; OpenStreetMap'
-                }).addTo(mapInstance);
-                L.control.zoom({ position: 'topright' }).addTo(mapInstance);
-                routeLayerGroup = L.layerGroup().addTo(mapInstance);
-            }
-            // Fix map size after display:block
-            setTimeout(() => { mapInstance.invalidateSize(); renderMapData(); }, 100);
-        }
-
-        function resetMap() {
-            if(routeLayerGroup) routeLayerGroup.clearLayers();
-            document.getElementById('map-overlay').classList.remove('hidden');
-            document.getElementById('optimized-sequence-container').classList.add('hidden');
-        }
-
-        function calculateRoute() {
-            if(deliveries.length === 0) return;
-            const btn = document.getElementById('btn-calculate');
-            btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 mr-2 animate-spin"></i> Sedang Mengkalkulasi...`;
-            btn.disabled = true;
-            lucide.createIcons();
-            
-            setTimeout(() => {
-                const bestOrderIndex = runGeneticAlgorithm(depot, deliveries);
-                optimizedRoute = bestOrderIndex.map(idx => deliveries[idx]);
-                
-                document.getElementById('map-overlay').classList.add('hidden');
-                renderMapData();
-                renderSequence();
-                
-                btn.innerHTML = `<i data-lucide="play" class="w-5 h-5 mr-2"></i> Mulai Optimasi Rute`;
-                btn.disabled = false;
-                lucide.createIcons();
-            }, 500);
-        }
-
-        function renderMapData() {
-            if(!routeLayerGroup) return;
-            routeLayerGroup.clearLayers();
-            
-            const pointsToDraw = optimizedRoute ? [depot, ...optimizedRoute, depot] : [depot, ...deliveries];
-            const bounds = L.latLngBounds();
-            const routeCoordinates = [];
-
-            pointsToDraw.forEach((wp, idx) => {
-                bounds.extend([wp.lat, wp.lng]);
-                
-                let isDepot = false;
-                let label = '';
-                let bgColor = 'bg-gray-400';
-                let zIndex = 500;
-
-                if (optimizedRoute) {
-                    isDepot = idx === 0 || idx === pointsToDraw.length - 1;
-                    label = isDepot ? '★' : idx;
-                    bgColor = isDepot ? 'bg-blue-600' : 'bg-red-500';
-                    zIndex = isDepot ? 1000 : 500;
-                    routeCoordinates.push([wp.lat, wp.lng]); 
-                } else {
-                    isDepot = idx === 0;
-                    label = isDepot ? '★' : idx;
-                    bgColor = isDepot ? 'bg-blue-600' : 'bg-gray-400';
-                    zIndex = isDepot ? 1000 : 500;
-                }
-                
-                const customIcon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="${bgColor} w-6 h-6 rounded-full border-2 border-white text-white flex items-center justify-center text-xs font-bold shadow-md">${label}</div>`,
-                    iconSize: [24, 24], iconAnchor: [12, 12]
-                });
-
-                L.marker([wp.lat, wp.lng], { icon: customIcon, zIndexOffset: zIndex })
-                    .addTo(routeLayerGroup)
-                    .bindPopup(`<b>${isDepot ? 'Titik Awal (Depot)' : 'Titik ' + label}</b><br/>${wp.address}`);
-            });
-
-            if (optimizedRoute && routeCoordinates.length > 0) {
-                // Menarik garis biru langsung di frontend untuk menjamin muncul dan tidak error
-                L.polyline(routeCoordinates, {
-                    color: '#3b82f6', weight: 4, opacity: 0.8, lineJoin: 'round'
-                }).addTo(routeLayerGroup);
-            }
-
-            if (pointsToDraw.length > 0) {
-                mapInstance.fitBounds(bounds, { padding: [40, 40] });
-            }
-        }
-
-        function renderSequence() {
-            if(!optimizedRoute) return;
-            const container = document.getElementById('optimized-sequence-container');
-            const listEl = document.getElementById('sequence-list');
-            container.classList.remove('hidden');
-
-            let html = `
-                <div class="relative pl-6">
-                    <div class="absolute -left-[9px] top-1 bg-blue-600 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div>
-                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wide">Mulai dari</p>
-                    <p class="text-sm font-semibold text-gray-800">${depot.address}</p>
-                </div>
-            `;
-
-            optimizedRoute.forEach((del, idx) => {
-                html += `
-                    <div class="relative pl-6">
-                        <div class="absolute -left-[11px] top-0 bg-white border-2 border-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
-                            <span class="text-[10px] font-bold text-red-500">${idx + 1}</span>
-                        </div>
-                        <p class="text-sm font-semibold text-gray-800 leading-snug">${del.address}</p>
-                        <p class="text-xs text-gray-400 mt-1">${del.id}</p>
-                    </div>
-                `;
-            });
-
-            html += `
-                <div class="relative pl-6 pb-2">
-                    <div class="absolute -left-[9px] top-1 bg-blue-600 w-4 h-4 rounded-full border-2 border-white shadow-sm"></div>
-                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wide">Selesai</p>
-                    <p class="text-sm font-semibold text-gray-800">Kembali ke Titik Awal</p>
-                </div>
-            `;
-            listEl.innerHTML = html;
+            document.getElementById('list-container').classList.remove('hidden');
         }
     </script>
 </body>
+
 </html>
