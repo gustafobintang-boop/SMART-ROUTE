@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Smart Route</title>
+    <!-- Script ini untuk mengambil desain/warna (Tailwind) secara otomatis -->
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <style>
+      .leaflet-container { z-index: 0 !important; }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+(Klik Commit changes... lalu buat file baru lagi)
+
+File 4: File Penghubung React
+
+Di kolom nama file, ketik: src/main.jsx
+(Perhatikan: Saat Anda mengetik garis miring /, GitHub akan otomatis membuatkan folder bernama src. Ini wajib!)
+
+Di kotak besar, paste kode ini:
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
